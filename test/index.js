@@ -6,7 +6,16 @@ const app = express()
 const PORT = process.env.PORT;
 
 app.get("/", (req, res) => {
-    res.send(`Hello from port ${PORT}`)
+    for (let i = 0; i < 100000; i++) {
+
+    }
+
+    res.send(`Hello From ${PORT}`)
+})
+
+app.get("/say/:name", (req,res) => {
+    const {name} = req.params
+    res.send(`Hello, ${name}`)
 })
 
 app.listen(PORT, () => {
