@@ -2,10 +2,14 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
+	"github.com/KeyzarRasya/ngingo/src/balancer"
+	"github.com/KeyzarRasya/ngingo/src/balancer/cpu"
 	"github.com/KeyzarRasya/ngingo/src/core"
 	"github.com/KeyzarRasya/ngingo/src/docker"
+	"github.com/KeyzarRasya/ngingo/src/files"
 	"github.com/KeyzarRasya/ngingo/src/model"
 	"gopkg.in/yaml.v3"
 )
@@ -41,25 +45,24 @@ func main() {
 		return;
 	}
 
-	
-	client, err := docker.Init()
+	ds, err := docker.NewDockerService()
 	
 	if err != nil {
 		fmt.Printf("Failed to create docker client")
 		return;
 	}
 	
+	cpuBalancer := cpu.NewCPUBalancer(ds)
+	endpointStat := balancer.NewEndpointCPUStat()
+	dataCpu := files.NewDataCPU(config.FileCPU, &endpointStat)
+
 	server = core.Server{
 		NgingoConfiguration: ngingo,
-		DockerClient: client,
+		HttpClient: &http.Client{},
+		Balancer: &cpuBalancer,
+		Service: ds,
+		DataFiles: &dataCpu,
 	}
-	
-
-	// containers, err := client.ContainerList(context.Background(), container.ListOptions{});
-
-	// for _, ctr := range containers {
-	// 	go docker.ReadStat(client, ctr)
-	// }
 
 	server.Run(config)
 
