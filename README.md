@@ -3,8 +3,11 @@
 
 AI Driven Reverse Proxy and Docker Container Orchestra based on Go Programming Language
 
-[!WARNING]
-this repo is still under development, there is still no unit test and CI/CD Pipeline. we wont you recommend to use this for a while
+> ⚠️ **WARNING**  
+> This repo is still under development.  
+> There is still no unit test and CI/CD pipeline.  
+> We don't recommend you to use this for now.
+
 
 ## Contributing
 
