@@ -5,12 +5,12 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/KeyzarRasya/ngingo/src/balancer"
-	"github.com/KeyzarRasya/ngingo/src/balancer/cpu"
-	"github.com/KeyzarRasya/ngingo/src/core"
-	"github.com/KeyzarRasya/ngingo/src/docker"
-	"github.com/KeyzarRasya/ngingo/src/files"
-	"github.com/KeyzarRasya/ngingo/src/model"
+	"github.com/KeyzarRasya/ngingo/internal/balancer"
+	"github.com/KeyzarRasya/ngingo/internal/balancer/cpu"
+	"github.com/KeyzarRasya/ngingo/internal/core"
+	"github.com/KeyzarRasya/ngingo/internal/docker"
+	"github.com/KeyzarRasya/ngingo/internal/files"
+	"github.com/KeyzarRasya/ngingo/internal/model"
 	"gopkg.in/yaml.v3"
 )
 
