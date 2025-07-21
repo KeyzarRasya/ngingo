@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/KeyzarRasya/ngingo/src/balancer"
+	"github.com/KeyzarRasya/ngingo/internal/balancer"
 )
 
 type DataWriteRead interface {

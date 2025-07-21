@@ -3,14 +3,15 @@ package core
 import (
 	"fmt"
 	"io"
+	"math"
 
 	"net/http"
 	"net/url"
 
-	"github.com/KeyzarRasya/ngingo/src/balancer"
-	"github.com/KeyzarRasya/ngingo/src/docker"
-	"github.com/KeyzarRasya/ngingo/src/files"
-	"github.com/KeyzarRasya/ngingo/src/model"
+	"github.com/KeyzarRasya/ngingo/internal/balancer"
+	"github.com/KeyzarRasya/ngingo/internal/docker"
+	"github.com/KeyzarRasya/ngingo/internal/files"
+	"github.com/KeyzarRasya/ngingo/internal/model"
 )
 
 type Server interface {
@@ -70,22 +71,19 @@ func (s *WebServer) Run() error {
 			return
 		}
 
-		diff := (after[pcpu.Port] - before[pcpu.Port])
+		diff := math.Abs(after[pcpu.Port] - before[pcpu.Port])
 		if err := s.DataFiles.FormatAndWrite(pcpu.Port, pcpu.Endpoint, diff); err != nil {
 			fmt.Println("Failed to write CPU Usage")
 			return
 		}
 
 		s.SendResponse(w, string(b))
-
 	})
 
 	fmt.Printf("Running at Port %s", s.Config.Port)
-
 	http.ListenAndServe(fmt.Sprintf(":%s", s.Config.Port), nil)
 
-	for {
-	}
+	for {}
 }
 
 func (s *WebServer) SendResponse(w http.ResponseWriter, message string) {

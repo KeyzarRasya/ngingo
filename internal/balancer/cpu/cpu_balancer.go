@@ -5,8 +5,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/KeyzarRasya/ngingo/src/balancer"
-	"github.com/KeyzarRasya/ngingo/src/docker"
+	"github.com/KeyzarRasya/ngingo/internal/balancer"
+	"github.com/KeyzarRasya/ngingo/internal/docker"
 )
 
 type CPUBalancer struct {
@@ -19,7 +19,7 @@ func NewCPUBalancer(service docker.Service) CPUBalancer {
 
 func (cb *CPUBalancer) LowestUsage() (*balancer.EndpointCPUStat, error) {
 	var sortedPortCpus []balancer.EndpointCPUStat;
-	portCpus, err := cb.portAndCPU()
+	portCpus, err := cb.portCpuUsage()
 
 	if err != nil {
 		return nil, err
@@ -40,10 +40,7 @@ func (cb *CPUBalancer) LowestUsage() (*balancer.EndpointCPUStat, error) {
 }
 
 func (cb *CPUBalancer) Usages() (map[uint16]float64, error) {
-	pcpu, err := cb.portAndCPU();
-
-	return pcpu, err
-
+	return cb.portCpuUsage(); 
 }
 
 func sortPortCPU(portCPU *[]balancer.EndpointCPUStat) error {
@@ -53,7 +50,7 @@ func sortPortCPU(portCPU *[]balancer.EndpointCPUStat) error {
 	return nil
 }
 
-func (cb *CPUBalancer) portAndCPU() (map[uint16]float64, error) {
+func (cb *CPUBalancer) portCpuUsage() (map[uint16]float64, error) {
 	var portCpu map[uint16]float64 = make(map[uint16]float64)
 	before, err := cb.Service.ReadStat()
 

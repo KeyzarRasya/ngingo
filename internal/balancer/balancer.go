@@ -1,6 +1,6 @@
 package balancer
 
-import "github.com/KeyzarRasya/ngingo/src/docker"
+import "github.com/KeyzarRasya/ngingo/internal/docker"
 
 type Balancer interface {
 	LowestUsage() 							(*EndpointCPUStat, error);
