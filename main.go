@@ -33,7 +33,6 @@ func parseYAML(path string, out interface{}) error {
 func main() {
 	var config model.Configuration;
 	var ngingo core.NgingoConfiguration;
-	var server core.Server;
 
 	if err := parseYAML(model.PATH ,&config); err != nil {
 		fmt.Println(err)
@@ -56,14 +55,15 @@ func main() {
 	endpointStat := balancer.NewEndpointCPUStat()
 	dataCpu := files.NewDataCPU(config.FileCPU, &endpointStat)
 
-	server = core.Server{
-		NgingoConfiguration: ngingo,
-		HttpClient: &http.Client{},
-		Balancer: &cpuBalancer,
-		Service: ds,
-		DataFiles: &dataCpu,
-	}
+	server := core.NewWebServer(
+		ngingo,
+		ds,
+		&http.Client{},
+		&cpuBalancer,
+		&dataCpu,
+		config,
+	)
 
-	server.Run(config)
+	server.Run()
 
 }

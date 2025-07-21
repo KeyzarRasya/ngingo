@@ -75,7 +75,7 @@ func (cb *CPUBalancer) portAndCPU() (map[uint16]float64, error) {
 
 	
 	for port, stat := range before {
-		portCpu[port] = readCPUUsage(stat, after[port])
+		portCpu[port] = cb.ReadUsage(stat, after[port])
 	}
 
 	// fmt.Printf("%f\n",portCpu[3000])
@@ -86,7 +86,7 @@ func (cb *CPUBalancer) portAndCPU() (map[uint16]float64, error) {
 
 }
 
-func readCPUUsage(before, after *docker.Stat) float64 {
+func (cb *CPUBalancer) ReadUsage(before, after *docker.Stat) float64 {
 	cpuDelta := after.CpuStat.CpuUsage.TotalUsage - before.CpuStat.CpuUsage.TotalUsage
 	sysDelta := after.CpuStat.SysCpuUsage - before.CpuStat.SysCpuUsage
 	onlineCPU := after.CpuStat.OnlineCpu

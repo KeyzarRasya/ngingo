@@ -12,6 +12,7 @@ import (
 type DataWriteRead interface {
 	Write(records [][]string)	error
 	Read()						([]balancer.VarStat, error)
+	FormatAndWrite(port uint16, endpoint string, diff float64) error
 }
 
 type DataCPU struct {
@@ -85,4 +86,16 @@ func (d *DataCPU) Read() ([]balancer.VarStat, error) {
 	fmt.Println(varStats)
 
 	return varStats, nil
+}
+
+func (d *DataCPU) FormatAndWrite(port uint16, endpoint string, diff float64) error {
+	var records [][]string;
+	record := []string{fmt.Sprintf("%d", port), endpoint, fmt.Sprintf("%f", diff)}
+	records = append(records, record)
+
+	if err := d.Write(records); err != nil {
+		return err
+	}
+
+	return nil
 }

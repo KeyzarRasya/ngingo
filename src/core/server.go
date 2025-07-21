@@ -13,68 +13,86 @@ import (
 	"github.com/KeyzarRasya/ngingo/src/model"
 )
 
-type Server struct {
-	NgingoConfiguration NgingoConfiguration;
-	Service 			*docker.DockerService
-	HttpClient			*http.Client;
-	Balancer			balancer.Balancer;
-	DataFiles			files.DataWriteRead
+type Server interface {
+	Run()
 }
 
-func (s *Server) Run(config model.Configuration) {
+type WebServer struct {
+	NgingoConfiguration NgingoConfiguration
+	Service             *docker.DockerService
+	HttpClient          *http.Client
+	Balancer            balancer.Balancer
+	DataFiles           files.DataWriteRead
+	Config              model.Configuration
+}
 
+func NewWebServer(
+	ngingoConfiguration NgingoConfiguration,
+	service *docker.DockerService,
+	httpClient *http.Client,
+	balancer balancer.Balancer,
+	dataFiles files.DataWriteRead,
+	config model.Configuration,
+) WebServer {
+	return WebServer{
+		NgingoConfiguration: ngingoConfiguration,
+		Service: service,
+		HttpClient: httpClient,
+		Balancer: balancer,
+		DataFiles: dataFiles,
+		Config: config,
+	}
+}
+
+func (s *WebServer) Run() error {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		var records [][]string;
 		pcpu, err := s.Balancer.LowestUsage()
 		if err != nil {
-			return;
+			return
 		}
 
-		before, err := s.Balancer.Usages();
+		before, err := s.Balancer.Usages()
 		if err != nil {
 			fmt.Println(err.Error())
-			return;
+			return
 		}
-		
+
 		b, err := s.processRequest(r, pcpu)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
 		}
-		
-		pcpu.Endpoint = r.URL.Path
 
+		pcpu.Endpoint = r.URL.Path
 		after, err := s.Balancer.Usages()
 		if err != nil {
 			fmt.Println(err.Error())
-			return;
+			return
 		}
 
 		diff := (after[pcpu.Port] - before[pcpu.Port])
+		if err := s.DataFiles.FormatAndWrite(pcpu.Port, pcpu.Endpoint, diff); err != nil {
+			fmt.Println("Failed to write CPU Usage")
+			return
+		}
 
-		record := []string{fmt.Sprintf("%d", pcpu.Port), pcpu.Endpoint, fmt.Sprintf("%f", diff)}
-		records = append(records, record)
-
-		s.DataFiles.Write(records)
-
-		fmt.Printf("===\n[PORT : %d]\n Before Usage : %f\n After Usage :  %f\n Diff : %f\n===\n", pcpu.Port, before[pcpu.Port], after[pcpu.Port], diff)
-
-	
-
-		fmt.Fprint(w, string(b))
+		s.SendResponse(w, string(b))
 
 	})
 
-	fmt.Printf("Running at Port %s", config.Port)
+	fmt.Printf("Running at Port %s", s.Config.Port)
 
-	http.ListenAndServe(fmt.Sprintf(":%s", config.Port), nil)
+	http.ListenAndServe(fmt.Sprintf(":%s", s.Config.Port), nil)
 
-
-	for {}
+	for {
+	}
 }
 
+func (s *WebServer) SendResponse(w http.ResponseWriter, message string) {
+	fmt.Fprint(w, message)
+}
 
-func (s *Server) processRequest(r *http.Request, portCpu *balancer.EndpointCPUStat) ([]byte, error) {
+func (s *WebServer) processRequest(r *http.Request, portCpu *balancer.EndpointCPUStat) ([]byte, error) {
 	url, err := url.Parse(r.URL.String())
 
 	if err != nil {
@@ -83,28 +101,23 @@ func (s *Server) processRequest(r *http.Request, portCpu *balancer.EndpointCPUSt
 
 	endpoint := fmt.Sprintf("http://localhost:%d%s", portCpu.Port, url.Path)
 
-	req, err := http.NewRequest(r.Method, endpoint, nil);
-
+	req, err := http.NewRequest(r.Method, endpoint, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	req.Header = r.Header.Clone()
-
 	res, err := s.HttpClient.Do(req)
-
 	if err != nil {
-		return nil, err;
+		return nil, err
 	}
-
 	defer res.Body.Close()
 
 	b, err := io.ReadAll(res.Body)
-
 	if err != nil {
 		return nil, err
 	}
 
-	return b, nil;
-	
+	return b, nil
+
 }
