@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/KeyzarRasya/ngingo/internal/balancer"
 )
@@ -90,7 +91,7 @@ func (d *DataCPU) Read() ([]balancer.VarStat, error) {
 
 func (d *DataCPU) FormatAndWrite(port uint16, endpoint string, diff float64) error {
 	var records [][]string;
-	record := []string{fmt.Sprintf("%d", port), endpoint, fmt.Sprintf("%f", diff)}
+	record := []string{time.Now().String(), fmt.Sprintf("%d", port), endpoint, fmt.Sprintf("%f", diff)}
 	records = append(records, record)
 
 	if err := d.Write(records); err != nil {
