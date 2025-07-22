@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"runtime"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
@@ -78,18 +76,7 @@ func (ds *DockerService) readStatCh(ctr container.Summary, port chan<- uint16, c
 	defer resp.Body.Close()
 
 	var stat Stat;
-	var memstat runtime.MemStats;
-
-	info, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return err;
-	}
-
-	runtime.ReadMemStats(&memstat);
-	fmt.Println(string(info))
-
-	err = json.Unmarshal(info, &stat);
-	if err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&stat); err != nil {
 		fmt.Println(err.Error())
 		port <- 0;
 		cpuStat <- nil
